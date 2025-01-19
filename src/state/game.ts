@@ -4,6 +4,7 @@ import type { MovingTo } from '@/components/Board'
 import type { Color } from '@/logic/pieces'
 import { oppositeColor } from '@/logic/pieces'
 
+//changing the game status bar(define the whoes turn)
 export const useGameSettingsState = create<{
   gameType: `local` | `online`
   setGameType: (type: `local` | `online`) => void

@@ -39,8 +39,13 @@ export const getPieceFromBoard = (
 ): Piece | null => {
   const { x, y } = position;
 
-  // Ensure indices are within bounds
-  if (y < 0 || y >= board.length || x < 0 || x >= board[y]?.length) {
+  // Check if position is out of bounds
+  if (
+    y < 0 || 
+    y >= board.length || 
+    x < 0 || 
+    x >= (board[y]?.length || 0) // Ensure board[y] is valid before checking x
+  ) {
     return null; // Out of bounds, return null
   }
 
@@ -64,12 +69,12 @@ export const pawnMoves: MoveFunction<Pawn> = ({
     { x: -1, y: 1 * colorMultiplier },
   ];
 
-  for (const steps of movesDiagonal) {
-    const move = getMove({ piece, board, steps, propagateDetectCheck });
-
-    // Allow simple diagonal moves if the target square is empty
-    if (move) {
-      moves.push(move);
+   for (const steps of movesDiagonal) {
+    const move = getMove({ piece, board, steps, propagateDetectCheck })
+    if (move && move.type !== `capture` && move.type !== `captureKing`) {
+      moves.push(move)
+    } else {
+      break
     }
   }
 
@@ -86,32 +91,44 @@ export const pawnMoves: MoveFunction<Pawn> = ({
   ];
 
   for (const { steps, capture } of captureMoves) {
-    // Check if the capture square contains an opponent piece
-    const capturePiece = getPieceFromBoard(board, {
-      x: piece.position.x + capture.x,
-      y: piece.position.y + capture.y,
-    });
+  // Calculate the positions for the capture piece and the landing square
+  const capturePosition: Position = {
+    x: piece.position.x + capture.x,
+    y: piece.position.y + capture.y,
+  };
 
-    // Ensure the capture piece belongs to the opponent
-    if (capturePiece && capturePiece.color !== piece.color) {
-      // Check if the landing square is empty
-      const landingMove = getMove({
+  const landingPosition: Position = {
+    x: piece.position.x + steps.x,
+    y: piece.position.y + steps.y,
+  };
+
+  // Check if the capture square contains an opponent piece
+  const capturePiece = getPieceFromBoard(board, capturePosition);
+
+  // Check if the landing square is empty
+  const landingTile = board[landingPosition.y]?.[landingPosition.x];
+  const isLandingEmpty = landingTile && !landingTile.piece;
+
+  // Ensure the capture piece belongs to the opponent, and the landing square is empty
+  if (capturePiece && capturePiece.color !== piece.color && isLandingEmpty) {
+    // Check if there are no intermediate pieces blocking the move
+    const intermediatePosition: Position = {
+      x: piece.position.x + capture.x / 2,
+      y: piece.position.y + capture.y / 2,
+    };
+
+    const intermediatePiece = getPieceFromBoard(board, intermediatePosition);
+    if (!intermediatePiece) {
+      moves.push({
         piece,
-        board,
+        type: `capture`,
         steps,
-        propagateDetectCheck,
+        capture: capturePiece, // Include the captured piece
+        newPosition: landingPosition,
       });
-
-      if (landingMove ) {
-        moves.push({
-          ...landingMove,
-          type: `capture`,
-          capture: capturePiece,
-        });
-      }
     }
   }
-
+}
   return moves;
 };
 
@@ -126,3 +143,4 @@ export const createPawn = ({ color, id, position }: PieceFactory): Pawn => {
 export type Pawn = Piece & {
   hasMoved: boolean
 }
+
