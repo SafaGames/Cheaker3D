@@ -33,24 +33,21 @@ const canEnPassant = (piece: Piece, colorMultiplier: number) => {
   return null
 }
 
-export const getPieceFromBoard = (
-  board: Tile[][],
-  position: Position,
-): Piece | null => {
+export const getPieceFromBoard = (board: Tile[][], position: Position): Piece | null => {
   const { x, y } = position;
 
-  // Check if position is out of bounds
+  // Validate bounds
   if (
     y < 0 || 
     y >= board.length || 
     x < 0 || 
-    x >= (board[y]?.length || 0) // Ensure board[y] is valid before checking x
+    x >= (board[y]?.length || 0)
   ) {
-    return null; // Out of bounds, return null
+    return null;
   }
 
   const tile = board[y][x];
-  return tile?.piece || null; // Safely access piece
+  return tile?.piece || null;
 };
 
 export const pawnMoves: MoveFunction<Pawn> = ({
@@ -119,18 +116,19 @@ export const pawnMoves: MoveFunction<Pawn> = ({
 
     const intermediatePiece = getPieceFromBoard(board, intermediatePosition);
     if (!intermediatePiece) {
-       // Remove the captured piece from the board and create an empty tile
-      board[capturePosition.y][capturePosition.x] = { ...board[capturePosition.y][capturePosition.x], piece: null };
+      // Add the move with capture information (but do not remove the piece yet)
       moves.push({
         piece,
         type: `capture`,
         steps,
-        capture: capturePiece, // Include the captured piece
+        capture: capturePiece, // Include the captured piece for reference
+        capturePosition,       // Add capture position for later removal
         newPosition: landingPosition,
       });
     }
   }
-}
+  }
+  
   return moves;
 };
 
@@ -141,6 +139,28 @@ export const createPawn = ({ color, id, position }: PieceFactory): Pawn => {
     ...getBasePiece({ color, id, type: `pawn`, position }),
   }
 }
+
+export const executeMove = (board: Tile[][], move: Move) => {
+  const { piece, newPosition, type, capturePosition } = move;
+
+  // Move the piece to the new position
+  const { x: newX, y: newY } = newPosition;
+  const { x: oldX, y: oldY } = piece.position;
+
+  // Update the board
+  board[oldY][oldX].piece = null; // Clear the old position
+  board[newY][newX].piece = piece; // Place the piece in the new position
+
+  // Update the piece's position
+  piece.position = newPosition;
+
+  // If it's a capture move, remove the captured piece
+  if (type === `capture` && capturePosition) {
+    const { x: captureX, y: captureY } = capturePosition;
+    board[captureY][captureX].piece = null; // Remove the captured piece
+  }
+};
+
 
 export type Pawn = Piece & {
   hasMoved: boolean

@@ -111,6 +111,7 @@ export type Move = {
   type: MoveTypes
   piece: Piece
   capture: Piece | null
+  capturePosition?: Position; 
   newPosition: Position
   castling?: {
     rook: Piece
