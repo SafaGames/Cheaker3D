@@ -230,7 +230,6 @@ export const getMove = ({
   steps,
   propagateDetectCheck,
   getFar,
-  
 }: {
   piece: Piece
   board: Board
@@ -252,16 +251,13 @@ export const getMove = ({
   }
   const willBeCheck = propagateDetectCheck && willBeInCheck(piece, board, steps)
 
-  // Handle capture scenario
   if (cur.piece?.color === oppositeColor(piece.color) && !willBeCheck) {
     return {
       ...props,
       type: cur.piece.type === `king` ? `captureKing` : `capture`,
-      capture: cur.piece, // Keep reference to the captured piece
-      removeCaptured: true, // Custom flag to indicate captured piece should be removed
+      capture: cur.piece,
     }
   }
-
   if (cur.piece) {
     return null
   }

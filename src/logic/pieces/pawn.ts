@@ -119,6 +119,8 @@ export const pawnMoves: MoveFunction<Pawn> = ({
 
     const intermediatePiece = getPieceFromBoard(board, intermediatePosition);
     if (!intermediatePiece) {
+       // Remove the captured piece from the board and create an empty tile
+      board[capturePosition.y][capturePosition.x] = { ...board[capturePosition.y][capturePosition.x], piece: null };
       moves.push({
         piece,
         type: `capture`,
