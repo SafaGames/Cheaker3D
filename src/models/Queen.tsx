@@ -7,7 +7,7 @@ import type { GLTF } from 'three-stdlib'
 
 type GLTFResult = GLTF & {
   nodes: {
-    Object001003: THREE.Mesh
+    Object001004: THREE.Mesh
   }
   materials: {
     [`Object001_mtl.003`]: THREE.MeshStandardMaterial
@@ -15,8 +15,8 @@ type GLTFResult = GLTF & {
 }
 
 export const QueenComponent: FC = () => {
-  const { nodes } = useGLTF(`/queen.glb`) as unknown as GLTFResult
-  return <mesh attach="geometry" {...nodes.Object001003.geometry} />
+  const { nodes } = useGLTF(`/king.glb`) as unknown as GLTFResult
+  return <mesh attach="geometry" {...nodes.Object001004.geometry} />
 }
 
-useGLTF.preload(`/queen.glb`)
+useGLTF.preload(`/king.glb`)
